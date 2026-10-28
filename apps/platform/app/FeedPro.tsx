@@ -24,7 +24,7 @@ export default function FeedPro({ me, say }: Any) {
 
   const load = useCallback(async (reset: boolean) => {
     if (busy.current) return; busy.current = true; setLoading(true);
-    const { data, error } = await sb.rpc('feed_videos', { p_mode: focus ? 'new' : mode, p_q: dq || null, p_limit: PAGE, p_offset: reset ? 0 : off.current, p_user: focus?.uid ?? null });
+    const { data, error } = await sb.rpc('feed_videos_v2', { p_mode: focus ? 'new' : mode, p_q: dq || null, p_limit: PAGE, p_offset: reset ? 0 : off.current, p_user: focus?.uid ?? null });
     if (error) say(error.message);
     const got: Any[] = data ?? []; let rows = got;
     if (reset) {
@@ -32,7 +32,7 @@ export default function FeedPro({ me, say }: Any) {
       const id = focus ? focus.startId : deep.current ? Number(new URLSearchParams(location.search).get('v')) : 0;
       deep.current = false;
       if (id && !dq && (focus || mode !== 'following')) {
-        const { data: one } = await sb.rpc('feed_videos', { p_mode: 'new', p_limit: 1, p_id: id });
+        const { data: one } = await sb.rpc('feed_videos_v2', { p_mode: 'new', p_limit: 1, p_id: id });
         if (one?.[0]) rows = [one[0], ...got.filter((r: Any) => r.id !== id)];
       }
     } else off.current += got.length;
