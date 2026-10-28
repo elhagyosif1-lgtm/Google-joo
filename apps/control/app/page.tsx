@@ -20,6 +20,11 @@ export default function Control() {
     if (error) return setMsg('بيانات الدخول غير صحيحة');
     setAuthed(true); setMsg('');
   };
+  const magicLogin = async () => {
+    if (!email) return setMsg('اكتب الإيميل الأول');
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+    setMsg(error ? 'تعذر إرسال الرابط، جرّب تاني' : 'اتبعتلك رابط دخول على الإيميل، افتحه من نفس الجهاز');
+  };
   const token = async () => (await sb.auth.getSession()).data.session?.access_token ?? '';
   const call = async (body: any) => {
     const r = await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await token()}` }, body: JSON.stringify(body) });
@@ -53,6 +58,7 @@ export default function Control() {
       <input value={email} onChange={e => setEmail(e.target.value)} placeholder="البريد" className="rounded p-3 text-black" autoComplete="username" />
       <input value={pw} onChange={e => setPw(e.target.value)} type="password" placeholder="كلمة المرور" className="rounded p-3 text-black" autoComplete="current-password" />
       <button onClick={login} className="rounded p-3 font-bold" style={{ background: '#1FC8B4', color: '#0B1020' }}>دخول</button>
+      <button onClick={magicLogin} className="rounded p-3 font-bold" style={{ background: '#E9B949', color: '#0B1020' }}>دخول برابط على الإيميل (من غير باسورد)</button>
       {msg && <p style={{ color: '#ff6b6b' }}>{msg}</p>}
     </main>
   );
