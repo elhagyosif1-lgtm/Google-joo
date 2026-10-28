@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  platform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/platform
+    env:
+      # قيم وهمية للبناء فقط. المتغيرات الحقيقية في Vercel
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run build
+
+  control:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/control
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run build
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check services/worker/worker.js
+      - run: node --check services/worker/transcode.js

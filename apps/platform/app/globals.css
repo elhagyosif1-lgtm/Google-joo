@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  background: #0b1020;
+  color: #efe6cf;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
