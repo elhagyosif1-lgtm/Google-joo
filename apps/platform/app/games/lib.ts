@@ -14,5 +14,10 @@ export async function topScores(game: 'xo' | '2048', limit = 10) {
     .eq('game', game)
     .order('score', { ascending: false })
     .limit(limit);
-  return (data ?? []) as { score: number; profiles: { username: string } | null }[];
+  // Supabase قد يُرجع علاقة profiles كمصفوفة في الأنواع، فنوحّدها لكائن واحد أو null
+  const rows = (data ?? []) as unknown as { score: number; profiles: { username: string }[] | { username: string } | null }[];
+  return rows.map(r => ({
+    score: r.score,
+    profiles: Array.isArray(r.profiles) ? (r.profiles[0] ?? null) : r.profiles,
+  }));
 }
