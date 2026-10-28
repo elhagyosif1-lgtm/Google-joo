@@ -10,7 +10,7 @@ import { put, pub, objPath, squareJpeg } from './lib/media';
 import { Room, RoomEvent, Track } from 'livekit-client';
 
 type Any = any;
-const C = { ink: '#0B1020', card: '#121a33', sand: '#EFE6CF', teal: '#1FC8B4', gold: '#E9B949' };
+import { C, applyTheme } from './lib/theme';
 const ERR: Record<string, string> = {
   AUTH_REQUIRED: 'سجّل الدخول أولاً.', BAD_AMOUNT: 'المبلغ غير صالح.', BAD_VF_NUMBER: 'رقم فودافون كاش غير صالح (11 رقم يبدأ بـ01).',
   BAD_TX_REFERENCE: 'اكتب رقم عملية فودافون كاش من رسالة التأكيد.', TOO_MANY_PENDING: 'عندك 3 طلبات إيداع قيد المراجعة.',
@@ -207,7 +207,7 @@ function Wallet({ me, prof, say, reload }: Any) {
     const [s, x, y] = await Promise.all([sb.from('app_settings').select('*').eq('id', 1).maybeSingle(),
       sb.from('deposits').select('id,amount_egp,coins,status,note').eq('user_id', me.id).order('id', { ascending: false }).limit(20),
       sb.from('withdrawals').select('id,diamonds,amount_egp,status,note').eq('user_id', me.id).order('id', { ascending: false }).limit(20)]);
-    setSt(s.data); setDep(x.data ?? []); setWd(y.data ?? []);
+    applyTheme(s.data?.theme); setSt(s.data); setDep(x.data ?? []); setWd(y.data ?? []);
   }, [me.id]);
   useEffect(() => { load(); }, [load]);
   const deposit = async () => { const { error } = await sb.rpc('request_deposit', { p_amount_egp: Math.round(+a), p_vf_number: vf.trim(), p_tx_ref: tx.trim() }); if (error) return say(em(error)); setA(''); setTx(''); say('طلب الإيداع قيد المراجعة'); load(); };

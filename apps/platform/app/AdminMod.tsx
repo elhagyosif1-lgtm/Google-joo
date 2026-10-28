@@ -4,7 +4,7 @@ import { sb } from './lib/sb';
 import { rmVideoFiles } from './lib/media';
 
 type Any = any;
-const C = { ink: '#0B1020', card: '#121a33', sand: '#EFE6CF', teal: '#1FC8B4', gold: '#E9B949' };
+import { C } from './lib/theme';
 const B = 'rounded px-2 py-1 mx-1 mt-1';
 
 export default function AdminMod({ say }: Any) {
@@ -37,7 +37,6 @@ export default function AdminMod({ say }: Any) {
   const cell = (n: Any, l: string) => <div className="rounded p-2 text-center" style={{ background: C.card }}><b className="block text-lg">{n ?? '-'}</b><small style={{ opacity: 0.7 }}>{l}</small></div>;
   return (
     <div className="mt-6">
-      <a href="/admin/console" className="mb-3 block rounded p-2 text-center font-bold" style={{ background: C.teal, color: C.ink }}>تيرمنال الأدمن الذكي ←</a>
       <h3 className="mb-2 font-bold">نظرة عامة</h3>
       {st && <div className="grid grid-cols-3 gap-2">
         {cell(st.users, 'مستخدمين')}{cell(st.videos, 'فيديوهات')}{cell(st.views, 'مشاهدات')}

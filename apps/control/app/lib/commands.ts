@@ -24,7 +24,132 @@ const vercel = async (path: string, init: RequestInit = {}) => {
   return j;
 };
 
+const findUser = async (username: string) => {
+  const { data, error } = await db().from('profiles').select('id,username,coins,diamonds,bonus,is_admin,banned').eq('username', username).maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error(`المستخدم ${username} غير موجود`);
+  return data;
+};
+
+const setBan = async (username: string, banned: boolean) => {
+  const u = await findUser(username);
+  const { error } = await db().from('profiles').update({ banned }).eq('id', u.id);
+  if (error) throw error;
+  return banned ? `تم حظر @${u.username}` : `تم فك حظر @${u.username}`;
+};
+
 export const COMMANDS: Cmd[] = [
+  {
+    name: 'user_lookup', risk: 'read', desc: 'بيانات مستخدم بالاسم',
+    params: [{ name: 'username', type: 'string', required: true, desc: 'اسم المستخدم' }],
+    run: async (p) => {
+      const u = await findUser(p.username);
+      return `@${u.username}\nعملات: ${u.coins}\nألماس: ${u.diamonds}\nمكافأة: ${u.bonus}\nأدمن: ${u.is_admin ? 'نعم' : 'لا'}\nمحظور: ${u.banned ? 'نعم' : 'لا'}`;
+    },
+  },
+  {
+    name: 'stats', risk: 'read', desc: 'إحصائيات المنصة الكاملة',
+    params: [],
+    run: async () => {
+      const c = db();
+      const count = async (t: string, f?: (q: any) => any) => {
+        let q = c.from(t).select('*', { count: 'exact', head: true });
+        if (f) q = f(q);
+        const { count } = await q; return count ?? 0;
+      };
+      const [users, videos, live, deps, wds] = await Promise.all([
+        count('profiles'), count('videos'), count('rooms', q => q.eq('is_live', true)),
+        count('deposits', q => q.eq('status', 'pending')), count('withdrawals', q => q.eq('status', 'pending')),
+      ]);
+      return `المستخدمين: ${users}\nالفيديوهات: ${videos}\nالبثوث الحية: ${live}\nإيداعات معلقة: ${deps}\nسحوبات معلقة: ${wds}`;
+    },
+  },
+  {
+    name: 'grant_coins', risk: 'confirm', desc: 'إضافة عملات لمستخدم',
+    params: [
+      { name: 'username', type: 'string', required: true, desc: 'اسم المستخدم' },
+      { name: 'amount', type: 'number', required: true, desc: 'المبلغ (1 إلى 100000)' },
+    ],
+    run: async (p) => {
+      const amount = Math.floor(Number(p.amount));
+      if (!(amount >= 1 && amount <= 100000)) throw new Error('المبلغ خارج الحد المسموح');
+      const c = db(); const u = await findUser(p.username);
+      const { error } = await c.from('profiles').update({ coins: u.coins + amount }).eq('id', u.id);
+      if (error) throw error;
+      await c.from('ledger').insert({ user_id: u.id, kind: 'admin_coins', amount });
+      return `تمت إضافة ${amount} عملة إلى @${u.username}`;
+    },
+  },
+  {
+    name: 'ban_user', risk: 'confirm', desc: 'حظر مستخدم (لا ينشر ولا يعلّق ولا يبث)',
+    params: [{ name: 'username', type: 'string', required: true, desc: 'اسم المستخدم' }],
+    run: async (p) => setBan(p.username, true),
+  },
+  {
+    name: 'unban_user', risk: 'confirm', desc: 'فك حظر مستخدم',
+    params: [{ name: 'username', type: 'string', required: true, desc: 'اسم المستخدم' }],
+    run: async (p) => setBan(p.username, false),
+  },
+  {
+    name: 'set_admin', risk: 'confirm', desc: 'منح أو سحب صلاحية الأدمن من مستخدم',
+    params: [
+      { name: 'username', type: 'string', required: true, desc: 'اسم المستخدم' },
+      { name: 'on', type: 'boolean', required: true, desc: 'true لمنح الصلاحية، false لسحبها' },
+    ],
+    run: async (p) => {
+      const u = await findUser(p.username);
+      const { error } = await db().from('profiles').update({ is_admin: !!p.on }).eq('id', u.id);
+      if (error) throw error;
+      return `@${u.username} ${p.on ? 'صار أدمن' : 'ما عاد أدمن'}`;
+    },
+  },
+  {
+    name: 'delete_video', risk: 'confirm', desc: 'حذف فيديو بالمعرّف (نهائي)',
+    params: [{ name: 'video_id', type: 'number', required: true, desc: 'معرّف الفيديو' }],
+    run: async (p) => {
+      const { error, count } = await db().from('videos').delete({ count: 'exact' }).eq('id', Number(p.video_id));
+      if (error) throw error;
+      return count ? `تم حذف الفيديو ${p.video_id}` : 'لم يُعثر على الفيديو';
+    },
+  },
+  {
+    name: 'pending_deposits', risk: 'read', desc: 'الإيداعات المعلقة',
+    params: [],
+    run: async () => {
+      const { data, error } = await db().from('deposits').select('id,amount_egp,coins,tx_ref').eq('status', 'pending').order('id').limit(20);
+      if (error) throw error;
+      if (!data?.length) return 'لا توجد إيداعات معلقة';
+      return data.map(d => `#${d.id} · ${d.amount_egp} ج · ${d.coins} عملة · مرجع ${d.tx_ref}`).join('\n');
+    },
+  },
+  {
+    name: 'set_theme', risk: 'confirm', desc: 'تغيير لون في المنصة (ink, card, sand, teal, gold)',
+    params: [
+      { name: 'key', type: 'string', required: true, desc: 'ink أو card أو sand أو teal أو gold' },
+      { name: 'value', type: 'string', required: true, desc: 'لون hex مثل #1FC8B4' },
+    ],
+    run: async (p) => {
+      if (!['ink', 'card', 'sand', 'teal', 'gold'].includes(p.key)) throw new Error('اسم اللون غير معروف');
+      if (!/^#[0-9a-fA-F]{6}$/.test(p.value)) throw new Error('اللون لازم يكون مثل #1FC8B4');
+      const c = db();
+      const { data, error: e1 } = await c.from('app_settings').select('theme').eq('id', 1).maybeSingle();
+      if (e1) throw e1;
+      const theme = { ...((data?.theme as Record<string, string>) ?? {}), [p.key]: p.value };
+      const { error } = await c.from('app_settings').update({ theme }).eq('id', 1);
+      if (error) throw error;
+      return `تم تغيير ${p.key} إلى ${p.value}. يظهر للمستخدمين عند فتح المنصة.`;
+    },
+  },
+  {
+    name: 'reset_theme', risk: 'confirm', desc: 'إرجاع ألوان المنصة للافتراضي',
+    params: [],
+    run: async () => {
+      const { error } = await db().from('app_settings').update({ theme: {} }).eq('id', 1);
+      if (error) throw error;
+      return 'تم إرجاع الألوان للافتراضي';
+    },
+  },
+
   {
     name: 'status', risk: 'read', desc: 'حالة المنصة والأرقام',
     params: [],

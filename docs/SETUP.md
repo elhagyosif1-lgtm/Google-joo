@@ -8,7 +8,7 @@
 - حساب [Render](https://dashboard.render.com) أو [Railway](https://railway.com/dashboard) للـ worker
 - حساب [LiveKit Cloud](https://cloud.livekit.io) للبث المباشر
 - حساب [Google Cloud Console](https://console.cloud.google.com/apis/credentials) لتسجيل الدخول بجوجل
-- حساب [Anthropic Console](https://console.anthropic.com/settings/keys) لمفتاح التيرمنال الذكي (اختياري للمنصة، مطلوب للوحة التحكم)
+- حساب [Anthropic Console](https://console.anthropic.com/settings/keys) لمفتاح التيرمنال الذكي (يوضع في مشروع control فقط)
 - تطبيق [ntfy](https://ntfy.sh) على جوالك (اختياري، للإشعارات)
 
 ## 1) قاعدة البيانات — Supabase
@@ -20,6 +20,7 @@
 4. `supabase/04_migration_v3.sql`
 5. `supabase/05_migration_v4.sql` (الألعاب)
 6. `supabase/06_migration_v5.sql` (سجل تدقيق الأدمن)
+7. `supabase/07_theme_and_admin.sql` (ألوان المنصة)
 
 **ملاحظة:** الملف `03` ينشئ جداول التعليقات والمتابعة والبلاغات، و`04` يضيف HLS والحظر وسياسات التخزين. تشغيله قبل `03` يفشل.
 
@@ -40,8 +41,6 @@
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET`
-   - `ANTHROPIC_API_KEY` (للتيرمنال الذكي)
-   - `ANTHROPIC_MODEL` (اختياري)
 4. Deploy.
 5. Vercel → Settings → Git → **Deploy Hooks** → أنشئ hook باسم `control` وانسخ رابطه. ستحتاجه في الخطوة 6.
 
@@ -75,14 +74,15 @@ update app_settings set vodafone_number = 'رقمك' where id = 1;
    - `NTFY_TOPIC` = اسم طويل عشوائي
    - `VERCEL_TOKEN` (توكن محدود للمشروع فقط، بتاريخ انتهاء)
    - `VERCEL_TEAM_ID` (اختياري، إذا المشروع تحت فريق)
-   - `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`
+   - `ANTHROPIC_API_KEY` (مطلوب، للتيرمنال الذكي)
+   - `ANTHROPIC_MODEL` (اختياري)
 4. في Supabase → Authentication → Users → أنشئ مستخدم بالبريد `ADMIN_EMAIL` وكلمة مرور طويلة، وفعّل تأكيد البريد.
 5. افتح رابط مشروع control وسجّل الدخول.
 
 ## 7) التحقق من الربط
 - المنصة: سجّل دخول بجوجل → تظهر تبويبات الرئيسية/لايف/المحفظة/المبدع/حسابي/ألعاب (+ أدمن لو أنت admin).
 - الألعاب: تبويب **ألعاب** في الأسفل.
-- التيرمنال الذكي: تبويب **أدمن** → زر **تيرمنال الأدمن الذكي**.
+- التيرمنال الذكي: افتح مشروع control من الجوال وسجّل دخولك. كل الأوامر هناك (`stats`, `user_lookup`, `ban_user`, `set_theme`...).
 - الفيديو: ارفع فيديو تجريبي. يظهر فوراً بـ mp4، وبعد دقيقة يصير HLS إذا الـ worker شغّال (تحقق من `videos.status` = `ready`).
 - لوحة التحكم: أمر `status` يرجع أرقام المستخدمين والفيديوهات.
 
@@ -92,7 +92,8 @@ update app_settings set vodafone_number = 'رقمك' where id = 1;
 | تسجيل جوجل يرجع لصفحة خطأ | Redirect URL غير مضاف في Supabase |
 | الصفحة بيضاء عند البناء | متغيرات `NEXT_PUBLIC_SUPABASE_*` ناقصة في Vercel |
 | `SERVER_MISCONFIGURED` | `SUPABASE_SERVICE_ROLE_KEY` ناقص في مشروع المنصة |
-| التيرمنال يقول `ANTHROPIC_API_KEY غير مضبوط` | المفتاح ناقص في مشروع المنصة (أو control للوحة) |
+| التيرمنال يقول `ANTHROPIC_API_KEY غير مضبوط` | المفتاح ناقص في مشروع control |
+| لون تغيّر ولا يظهر | الصفحة قديمة: حدّثها، أو الأمر `reset_theme` لإرجاع الافتراضي |
 | `redeploy` يفشل في control | `DEPLOY_HOOK_URL` ناقص أو منسوخ من مشروع خاطئ |
 | `set_env` يعمل لكن التغيير لا يظهر | يحتاج نشر جديد (أمر `redeploy`) |
 | فيديو يبقى `pending` | الـ worker متوقف أو بدون `SUPABASE_SERVICE_ROLE_KEY` |

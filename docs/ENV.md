@@ -12,8 +12,6 @@
 | `LIVEKIT_URL` | عام | نعم للبث | LiveKit Cloud | شكل `wss://...` |
 | `LIVEKIT_API_KEY` | **سري** | نعم للبث | LiveKit Cloud | |
 | `LIVEKIT_API_SECRET` | **سري** | نعم للبث | LiveKit Cloud | |
-| `ANTHROPIC_API_KEY` | **سري** | نعم للتيرمنال | Anthropic Console | |
-| `ANTHROPIC_MODEL` | عام | لا | — | الافتراضي `claude-sonnet-4-6` |
 
 ## لوحة التحكم — `apps/control` (Vercel، مشروع منفصل)
 
@@ -28,8 +26,8 @@
 | `VERCEL_TEAM_ID` | خاص | لا | فقط إذا المشروع تحت فريق |
 | `DEPLOY_HOOK_URL` | **سري** | للـ `redeploy` | من Settings → Git → Deploy Hooks لمشروع **المنصة** |
 | `NTFY_TOPIC` | خاص | لا | اسم طويل عشوائي؛ من يعرفه يقرأ إشعاراتك |
-| `ANTHROPIC_API_KEY` | **سري** | نعم | |
-| `ANTHROPIC_MODEL` | عام | لا | |
+| `ANTHROPIC_API_KEY` | **سري** | نعم (للتيرمنال الذكي) | Anthropic Console |
+| `ANTHROPIC_MODEL` | عام | لا | الافتراضي `claude-sonnet-4-6` |
 
 ## الـ Worker — `services/worker` (Render / Railway)
 

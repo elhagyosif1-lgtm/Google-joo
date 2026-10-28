@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { sb } from './lib/sb';
 
 type Any = any;
-const C = { ink: '#0B1020', card: '#121a33', sand: '#EFE6CF', teal: '#1FC8B4', gold: '#E9B949' };
+import { C } from './lib/theme';
 const num = (x: number) => (x >= 1e6 ? (x / 1e6).toFixed(1) + 'M' : x >= 1e3 ? (x / 1e3).toFixed(1) + 'K' : String(x ?? 0));
 
 export default function Profile({ uid, me, say, onClose, onFollow, onOpen }: Any) {

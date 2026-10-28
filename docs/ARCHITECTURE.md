@@ -30,15 +30,13 @@ flowchart LR
   P -->|قراءة/كتابة بصلاحية المستخدم| DB
   P -->|رفع mp4| ST
   P -->|/api/livekit-token| LK
-  P -->|/api/console| AI
-  P -->|/api/console → service role| DB
 
   A --> C
   C -->|Bearer JWT → ADMIN_EMAIL| C
   C -->|service role| DB
   C -->|Vercel API: set_env| P
   C -->|Deploy Hook| P
-  C -->|plan الأمر| AI
+  C -->|plan الأمر (قائمة مغلقة)| AI
   C -->|notify| NT
 
   W -->|يقرأ pending + service role| DB
@@ -51,11 +49,9 @@ flowchart LR
 | من | إلى | كيف | المتغيرات | ملاحظة |
 |---|---|---|---|---|
 | المنصة (المتصفح) | Supabase | `@supabase/supabase-js` بالـ anon key | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | الحماية في RLS وسياسات الجداول |
-| المنصة (السيرفر) `/api/console` | Supabase | service role بعد التحقق من `is_admin` | `SUPABASE_SERVICE_ROLE_KEY` | يتحقق من الأدمن أولاً بتوكن المستخدم |
-| المنصة `/api/console` | Anthropic | تحويل النص لأمر من قائمة مغلقة | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | لا SQL حر |
 | المنصة `/api/livekit-token` | LiveKit | إصدار توكن غرفة | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | |
 | المنصة | Google | تسجيل دخول OAuth عبر Supabase | إعداد في Supabase Dashboard | Redirect URL لازم يطابق الدومين |
-| control `/api/control` | Supabase | service role بعد التحقق من `ADMIN_EMAIL` | `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAIL` | |
+| control `/api/control` (التيرمنال الوحيد) | Supabase | service role بعد التحقق من `ADMIN_EMAIL` | `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAIL` | |
 | control | Vercel API | تعيين env للإنتاج | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID` (= **المنصة**), `VERCEL_TEAM_ID` | |
 | control | Vercel Deploy Hook | إعادة نشر المنصة | `DEPLOY_HOOK_URL` (من مشروع المنصة) | |
 | control | ntfy | إشعار للجوال | `NTFY_TOPIC` | |
@@ -69,11 +65,10 @@ flowchart LR
 5. يحدّث `hls_url` و `duration` و `status='ready'`. إذا فشل: `status='failed'` ويبقى المشغّل على mp4.
 
 ## تدفق الأوامر من الجوال
-- **لوحة control:** جوال → control → Claude يختار أمراً من قائمة `commands.ts` → أوامر القراءة تنفذ مباشرة، أوامر التغيير تحتاج ضغطة تأكيد.
-- **تيرمنال المنصة:** أدمن → `/admin/console` → نفس الفكرة لكن أوامر قاعدة البيانات فقط، والأوامر الخطرة تحتاج سبباً مكتوباً، وكل محاولة تُسجَّل في `admin_audit`.
+- جوال → control → الذكاء يختار أمراً من قائمة `commands.ts` ويعبّي معاملاته → أوامر القراءة تنفذ مباشرة، وأوامر التغيير تحتاج ضغطة تأكيد. لا SQL حر ولا shell.
 
 ## نقاط ضعف معروفة (مرتبة بالأهمية)
 1. **لا يوجد runner للـ migrations.** الترتيب يعتمد على تشغيل الملفات يدوياً. الحل المقترح لاحقاً: Supabase CLI مع مجلد `supabase/migrations` بطابع زمني.
-2. **تكرار الأدوات الإدارية:** لوحة control (أوامر على مستوى Vercel/النظام) والتيرمنال داخل المنصة (أوامر على قاعدة البيانات) فيهما أوامر متداخلة مثل الحظر. القرار: إبقاؤهما منفصلين عمداً (control يعمل حتى لو المنصة متعطلة)، لكن أي أمر جديد يُضاف في مكان واحد فقط.
+2. **التيرمنال واحد فقط (control).** تم حذف لوحة الأدمن الثانية داخل المنصة لتقليل سطح الهجوم. مفتاح `VERCEL_TOKEN` موجود في control فقط. تسريب مفتاح control هو أخطر حادثة ممكنة، لذلك حماية حساب `ADMIN_EMAIL` (كلمة مرور طويلة + تحقق بريد + 2FA من Supabase إن توفر) أولوية.
 3. **الـ worker نسخة واحدة:** `reset` عند البداية يعيد أي `processing` إلى `pending`. تشغيل نسختين سيكرر التحويل.
 4. **`set_env` يكتب للإنتاج فقط** ويحتاج `redeploy` بعده.

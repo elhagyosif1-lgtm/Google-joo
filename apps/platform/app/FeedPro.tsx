@@ -5,7 +5,7 @@ import { put, frame, pub, rmVideoFiles } from './lib/media';
 import Profile from './Profile';
 
 type Any = any;
-const C = { ink: '#0B1020', card: '#121a33', sand: '#EFE6CF', teal: '#1FC8B4', gold: '#E9B949' };
+import { C } from './lib/theme';
 const MAX_MB = 50, MAX_SEC = 180, PAGE = 8;
 const seen = new Set<number>();
 const num = (x: number) => (x >= 1e6 ? (x / 1e6).toFixed(1) + 'M' : x >= 1e3 ? (x / 1e3).toFixed(1) + 'K' : String(x ?? 0));
