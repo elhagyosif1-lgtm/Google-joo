@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>لوحة الإدارة</title>
+<style>body{font:15px/1.6 system-ui,Tahoma;background:#15110e;color:#f3ecdf;margin:0;padding:16px;max-width:640px;margin-inline:auto}input,button{font:inherit;padding:10px;border-radius:10px;border:1px solid #4a3d30;background:#2e251d;color:inherit}button{background:#c47f2f;color:#1a0f05;font-weight:800;cursor:pointer;border:0}button.n{background:#e2553f;color:#fff}.c{background:#211a15;border:1px solid #3a2f24;border-radius:14px;padding:12px;margin:10px 0}h3{margin:18px 0 6px}code{direction:ltr;unicode-bidi:embed}</style></head><body>
+<h2>لوحة الإدارة — مستر جو</h2>
+<div class="c"><input id="k" type="password" placeholder="ADMIN_KEY" style="width:65%"> <button onclick="sessionStorage.k=k.value;load()">دخول</button></div>
+<div id="out"></div>
+<script>
+const $=s=>document.querySelector(s);const k=$('#k');k.value=sessionStorage.k||'';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const call=(q,body)=>fetch('/api/admin'+(q||''),{method:body?'POST':'GET',headers:{'x-admin-key':sessionStorage.k||'','content-type':'application/json'},body:body?JSON.stringify(body):undefined}).then(r=>r.json());
+async function act(a,id,approve){let note='';if(a==='withdrawal'&&!approve)note=prompt('سبب الرفض؟')||'';else if(a==='withdrawal'&&approve&&!confirm('اتأكد إنك حوّلت المبلغ فعلاً من فودافون كاش؟'))return;await call('',{action:a,id,approve,note});load()}
+async function rev(){const amount=+$('#ra').value,fund_pct=(+$('#rp').value||40)/100;const r=await call('',{action:'revenue',amount,fund_pct});alert(r.ok?'تم':'خطأ');load()}
+async function wk(){if(!confirm('إغلاق الأسبوع وتوزيع الصندوق؟'))return;const r=await call('',{action:'weekly_close'});alert(JSON.stringify(r));load()}
+async function load(){const j=await call();if(!j.ok){$('#out').innerHTML='<div class="c">غير مصرّح</div>';return}
+$('#out').innerHTML=`<div class="c"><b>صندوق المبدعين الأسبوعي:</b> ${j.pool.weekly_fund_egp} ج — <b>إجمالي إيرادات الإعلانات المسجّلة:</b> ${j.pool.ad_revenue_egp} ج<br>رقم فودافون كاش للاستلام: <code>${esc(j.vodafone)}</code></div>
+<h3>طلبات الشحن (${j.deposits.length})</h3>${j.deposits.map(d=>`<div class="c">@${esc(d.profiles?.username)} — <b>${d.amount_egp} ج</b> ← ${d.coins} عملة<br>من: <code>${esc(d.vf_number)}</code> — عملية: <code>${esc(d.tx_ref)}</code><br><br><button onclick="act('deposit','${d.id}',true)">وصلت الفلوس — اشحن</button> <button class="n" onclick="act('deposit','${d.id}',false)">ارفض</button></div>`).join('')||'<div class="c">لا شيء</div>'}
+<h3>طلبات السحب (${j.withdrawals.length})</h3>${j.withdrawals.map(w=>`<div class="c">@${esc(w.profiles?.username)} — <b>${w.amount_egp} ج</b><br>حوّل على: <code>${esc(w.vf_number)}</code><br><br><button onclick="act('withdrawal','${w.id}',true)">حوّلت — تم</button> <button class="n" onclick="act('withdrawal','${w.id}',false)">ارفض وارجّع الرصيد</button></div>`).join('')||'<div class="c">لا شيء</div>'}
+<h3>تسجيل إيراد إعلانات حقيقي</h3><div class="c"><input id="ra" type="number" placeholder="المبلغ بالجنيه" style="width:40%"> <input id="rp" type="number" placeholder="% للمبدعين" value="40" style="width:25%"> <button onclick="rev()">سجّل</button></div>
+<div class="c"><button onclick="wk()">إغلاق الأسبوع وتوزيع الصندوق الآن</button><br><small>بيتنفذ أوتوماتيك كل أحد ١٠ مساءً UTC عن طريق Cron.</small></div>`}
+if(sessionStorage.k)load();
+</script></body></html>
