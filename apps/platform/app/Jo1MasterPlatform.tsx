@@ -29,7 +29,6 @@ export default function Jo1MasterPlatform() {
   const [activeTab, setActiveTab] = useState<"feed" | "discover" | "gemini" | "game" | "profile">("feed");
   const [subView, setSubView] = useState<"none" | "wallet" | "vault" | "cosmic" | "pk">("none");
   const [geminiRole, setGeminiRole] = useState("مستشار المحتوى والتريندات");
-  const [walletCoins] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(210400);
   const videoRef = useRef<HTMLVideoElement>(null);
