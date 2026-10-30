@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
-  const origin = 'https://google-joo.vercel.app';
+  const origin = request.nextUrl.origin;
   if (!code) return NextResponse.redirect(new URL('/?auth_error=missing_code', origin));
 
   let response = NextResponse.redirect(new URL('/', origin));

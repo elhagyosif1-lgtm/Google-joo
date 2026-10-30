@@ -6,7 +6,6 @@ import { createBrowserClient } from '@supabase/ssr';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 const supabase = url && anon ? createBrowserClient(url, anon) : null;
-const callbackUrl = 'https://google-joo.vercel.app/auth/callback';
 
 export default function AuthGate() {
   const [busy, setBusy] = useState(false);
@@ -15,6 +14,7 @@ export default function AuthGate() {
   const signIn = async () => {
     if (!supabase) return;
     setBusy(true); setError('');
+    const callbackUrl = window.location.origin + '/auth/callback';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callbackUrl, queryParams: { access_type: 'offline', prompt: 'select_account' } },
