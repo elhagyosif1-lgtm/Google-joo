@@ -29,7 +29,7 @@ export default function Jo1MasterPlatform() {
   const [activeTab, setActiveTab] = useState<"feed" | "discover" | "gemini" | "game" | "profile">("feed");
   const [subView, setSubView] = useState<"none" | "wallet" | "vault" | "cosmic" | "pk">("none");
   const [geminiRole, setGeminiRole] = useState("مستشار المحتوى والتريندات");
-  const [walletCoins, setWalletCoins] = useState(100000);
+  const [walletCoins] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(210400);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -46,8 +46,7 @@ export default function Jo1MasterPlatform() {
             >
               <Coins size={12} className="text-amber-400" />
               <span>شحن الآن</span>
-              <span className="text-zinc-400">|</span>
-              <span className="text-amber-200">01090718514</span>
+              
             </button>
           </div>
 
@@ -335,41 +334,26 @@ export default function Jo1MasterPlatform() {
           <div className="absolute inset-0 z-50 flex flex-col justify-between overflow-y-auto bg-black/95 p-4 pt-12">
             <div>
               <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <h3 className="text-sm font-black text-white">محفظة فودافون كاش الحقيقية المربوطة</h3>
+                <h3 className="text-sm font-black text-white">المحفظة — وضع تجريبي غير متصل</h3>
                 <button type="button" onClick={() => setSubView("none")} className="rounded-full bg-zinc-800 p-1">
                   <X size={16} />
                 </button>
               </div>
 
               <div className="mt-4 space-y-2 rounded-3xl border border-rose-500/40 bg-gradient-to-tr from-rose-900/60 via-zinc-900 to-black p-5 shadow-xl">
-                <span className="block text-[10px] text-zinc-400">الرصيد الإجمالي المعتمد في قاعدة البيانات</span>
+                <span className="block text-[10px] text-zinc-400">الرصيد غير متاح: لا يوجد اتصال موثّق بالمحفظة</span>
                 <h2 className="font-mono text-3xl font-black text-white">
-                  {walletCoins.toLocaleString()} <span className="text-sm font-normal text-amber-300">عملة 🪙</span>
+                  — <span className="text-sm font-normal text-amber-300">غير متاح 🪙</span>
                 </h2>
                 <div className="flex justify-between border-t border-white/10 pt-2 font-mono text-xs">
-                  <span className="font-bold text-emerald-400">$500.00 USD (~25,250 ج.م)</span>
-                  <span className="text-amber-300">01090718514</span>
+                  <span className="font-bold text-amber-300">لا توجد أرصدة مالية حقيقية مفعّلة</span>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-3">
-                <span className="mb-2 block text-xs font-bold text-amber-300">كود تحويل فودافون كاش المباشر:</span>
-                <div className="flex justify-between rounded-xl bg-black p-2.5 font-mono text-xs text-cyan-300">
-                  <span>*9*7*01090718514*500#</span>
-                </div>
-              </div>
+              <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-xs leading-6 text-amber-200">الشحن والسحب متوقفان في هذه النسخة. لا ترسل أموالاً أو بيانات دفع؛ لن يتم تسجيل أي عملية مالية حالياً.</p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setWalletCoins((p) => p + 5000);
-                alert("تم شحن 5,000 عملة تجريبية بنجاح!");
-              }}
-              className="w-full rounded-xl bg-amber-500 py-3 text-xs font-black text-black"
-            >
-              + شحن فوري تجريبي للمحفظة
-            </button>
+            <button type="button" disabled className="w-full cursor-not-allowed rounded-xl bg-zinc-700 py-3 text-xs font-black text-zinc-300">الشحن غير متاح حالياً</button>
           </div>
         )}
 
