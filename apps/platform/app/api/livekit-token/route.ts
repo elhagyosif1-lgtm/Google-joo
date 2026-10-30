@@ -11,8 +11,8 @@ export async function POST(req: Request) {
   const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
   const { data: u } = await sb.auth.getUser(jwt);
   if (!u.user) return new NextResponse('AUTH_REQUIRED', { status: 401 });
-  const { data: profile } = await sb.from('profiles').select('banned').eq('id', u.user.id).maybeSingle();
-  if (!profile || profile.banned) return new NextResponse('ACCOUNT_RESTRICTED', { status: 403 });
+  const { data: allowed, error: accessError } = await sb.rpc('not_banned');
+  if (accessError || allowed !== true) return new NextResponse('ACCOUNT_RESTRICTED', { status: 403 });
   const { data: room } = await sb.from('rooms').select('id,host_id,is_live').eq('id', roomId).maybeSingle();
   if (!room || !room.is_live) return new NextResponse('ROOM_NOT_LIVE', { status: 404 });
   const isHost = room.host_id === u.user.id;
