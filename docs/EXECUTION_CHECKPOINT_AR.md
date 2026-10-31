@@ -68,3 +68,16 @@
 3. افحص كل route يستعمل جداول Supabase بعد تضييق الصلاحيات، ثم نفّذ اختبارات مصادقة وملكية.
 4. لا تفتح سياسات الجداول الثلاثة إلا بعد تحديد الاستعلامات التي تحتاجها فعلياً وكتابة سياسة ملكية دقيقة.
 5. لا تدمج ولا تنشر Production ولا تنقل Firebase ولا تنفذ عمليات مالية فعلية دون موافقة صريحة.
+
+
+## عطل تسجيل Google الظاهر في لقطة 2026-10-31 16:02 UTC
+- المستخدم اختبر زر Google وظهرت صفحة Google: `400 redirect_uri_mismatch`.
+- تمت مراجعة AuthGate: يستدعي `signInWithOAuth({ provider: 'google', redirectTo: window.location.origin + '/auth/callback' })`.
+- تمت مراجعة callback route: يستبدل code بجلسة Supabase عبر `exchangeCodeForSession`.
+- تمت مراجعة Vercel envs: عنوان Supabase ومفتاح publishable موجودان في Production وPreview/Development؛ لا يظهر متغير ناقص يفسر خطأ Google.
+- التشخيص: رفض Google لعنوان redirect URI المستخدم بين Google وSupabase، قبل أن يصل المتصفح إلى callback الخاص بالتطبيق. عنوان Google Authorized redirect URI الخاص بمزود Supabase هو:
+  `https://cadabxtlvxnwtmskkbkm.supabase.co/auth/v1/callback`
+- هذا ليس عنوان `/auth/callback` الخاص بالتطبيق. قائمة Redirect URLs في Supabase تضبط وجهة العودة من Supabase إلى التطبيق، ولا تعالج رفض Google لعنوان callback الخاص بـ Supabase.
+- أدوات الربط المتاحة في هذه الجلسة لا توفر قراءة/تعديل إعداد OAuth client في Google Cloud Console ولا إعداد Google provider secrets في Supabase Auth. لذلك لم يتم الادعاء بإصلاح الخطأ، ولم تُجرَ تغييرات عشوائية على التطبيق أو مزود OAuth.
+- لا تطلب من المستخدم تكرار خطوات يدوية. عند توفر تكامل إداري مباشر مع Google Cloud OAuth credentials أو Supabase Auth provider config، نفّذ ضبط Authorized redirect URI على عميل Google المرتبط فعلياً بالمشروع ثم أعد اختبار الدخول.
+- لا تنشئ OAuth client جديداً ولا تستبدل Client ID/Secret ولا تغيّر provider دون إثبات العميل الحالي وخطة رجوع.
