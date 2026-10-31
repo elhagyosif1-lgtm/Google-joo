@@ -1,0 +1,9 @@
+{
+  "name": "mrjooworld",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MR JOO WORLD - lightweight short-video + live + games platform (PWA)",
+  "engines": { "node": ">=18" },
+  "dependencies": { "@supabase/supabase-js": "^2.45.0" }
+}
