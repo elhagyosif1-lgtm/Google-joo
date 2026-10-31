@@ -1,2 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-export const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+import { createClient } from '../../lib/supabase/client';
+
+// Use the SSR-aware browser client so Supabase Auth persists through the
+// same cookie-backed session checked by the protected server page.
+export const sb = createClient();
