@@ -26,4 +26,4 @@ export default route({
     res.setHeader('Cache-Control', 'private, max-age=10');
     ok(res, { feed: list });
   },
-}, { auth: () => false });
+});
