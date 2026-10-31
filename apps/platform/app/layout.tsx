@@ -10,8 +10,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'Jo1',
-  description: 'Jo1 — فيديو، بث مباشر، هدايا، ومحفظة.',
+  title: 'اترك أثر طيب',
+  description: 'مجتمع للفيديو والبث المباشر وصناعة أثر حقيقي.',
 };
 
 export const viewport: Viewport = {
@@ -21,7 +21,6 @@ export const viewport: Viewport = {
   themeColor: '#0B1020',
 };
 
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={tajawal.className}>
@@ -29,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="Jo1" />
+        <meta name="apple-mobile-web-app-title" content="اترك أثر" />
       </head>
       <body>
         {children}
