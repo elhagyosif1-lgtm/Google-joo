@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Tajawal } from 'next/font/google';
 import './globals.css';
 import PWA from './lib/pwa';
+import ImpactShortcut from './ImpactShortcut';
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
@@ -10,8 +11,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'Jo1',
-  description: 'Jo1 — فيديو، بث مباشر، هدايا، ومحفظة.',
+  title: 'Jo1 | اترك أثراً',
+  description: 'Jo1 — فيديو، بث مباشر، هدايا، ومساحة للتعريف بالمبادرات التي تترك أثراً طيباً.',
 };
 
 export const viewport: Viewport = {
@@ -20,7 +21,6 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
   themeColor: '#0B1020',
 };
-
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        <ImpactShortcut />
         <PWA />
       </body>
     </html>
